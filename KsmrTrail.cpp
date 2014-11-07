@@ -62,7 +62,8 @@ void KsmrTrail::draw(){
 
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 	ofSetColor(col);
-	glBegin(GL_TRIANGLE_STRIP);
+
+	vector<ofVec3f> vs;
 	for (int i = 0;i < numVerts - 1;i++){
 		if (i < numVerts - 2){
 			ofVec3f v1 = (head[i]   - head[i+1]);
@@ -72,13 +73,17 @@ void KsmrTrail::draw(){
 			ofVec3f vn1 = head[i] + vn;
 			ofVec3f vn2 = head[i] - vn;
 
-			glVertex3f(vn1.x, vn1.y, vn1.z);
-			glVertex3f(vn2.x, vn2.y, vn2.z);
+			vs.push_back(ofVec3f(vn1));
+			vs.push_back(ofVec3f(vn2));
 		}else{
-			glVertex3f(head[i].x, head[i].y, head[i].z);
+			vs.push_back(ofVec3f(head[i]));
 		}
 	}
-	glEnd();
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
+	glDisableClientState(GL_VERTEX_ARRAY);
 
 	ofSetColor(255);
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
