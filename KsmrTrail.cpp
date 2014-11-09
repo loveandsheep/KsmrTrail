@@ -23,6 +23,7 @@ void KsmrTrail::setup(ofVec3f pos, float wid, int length){
 
 	head_atten = 0.95;
 	numVerts = length;
+
 }
 
 void KsmrTrail::update(ofVec3f target){
@@ -58,13 +59,13 @@ void KsmrTrail::setWidth(float w){
 	width = w;
 }
 
-void KsmrTrail::draw(){
+void KsmrTrail::draw(KsmrTrailType type, int resolution){
 
-	ofEnableBlendMode(OF_BLENDMODE_ADD);
+	resolution = ofClamp(resolution, 1, numVerts-2);
 	ofSetColor(col);
-
+	
 	vector<ofVec3f> vs;
-	for (int i = 0;i < numVerts - 1;i++){
+	for (int i = 0;i < numVerts - 1;i+=resolution){
 		if (i < numVerts - 2){
 			ofVec3f v1 = (head[i]   - head[i+1]);
 			ofVec3f v2 = (head[i+1] - head[i+2]);
@@ -80,10 +81,26 @@ void KsmrTrail::draw(){
 		}
 	}
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
-	glDisableClientState(GL_VERTEX_ARRAY);
+	if (type == KSMR_TRAIL_NORMAL){
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+	if (type == KSMR_TRAIL_MESH){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON);
+	}
+	if (type == KSMR_TRAIL_LINE_THIN){
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, &head[0]);
+		glDrawArrays(GL_LINE_STRIP, 0, numVerts);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
 
 	ofSetColor(255);
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
@@ -99,6 +116,7 @@ void KsmrTrail::resetPosition(ofVec3f pos){
 
 void KsmrTrail::setNumVerts(int num){
 	resetPosition(head[0]);
+	numVerts = ofClamp(num, 0, NUM_VERTS_MAX);
 }
 
 void KsmrTrail::setHeadAttenuation(float att){
