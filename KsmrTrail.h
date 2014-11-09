@@ -11,7 +11,7 @@
 
 #include "ofMain.h"
 
-#define NUM_VERTS_MAX 50
+#define NUM_VERTS_MAX 100
 
 enum KsmrTrailType{
 	KSMR_TRAIL_NORMAL,
