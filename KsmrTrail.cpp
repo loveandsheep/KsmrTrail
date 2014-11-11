@@ -49,6 +49,24 @@ void KsmrTrail::update(ofVec3f target){
 		head[i] += head_vec[i];
 	}
 
+	//シェイプ更新
+	verts_shape.clear();
+	for (int i = 0;i < numVerts - 1;i++){
+		if (i < numVerts - 2){
+			ofVec3f v1 = (head[i]   - head[i+1]);
+			ofVec3f v2 = (head[i+1] - head[i+2]);
+			ofVec3f vn = v1.crossed(v2).normalized() * width * sin(i / float(numVerts-1.0f) * PI);
+
+			ofVec3f vn1 = head[i] + vn;
+			ofVec3f vn2 = head[i] - vn;
+
+			verts_shape.push_back(ofVec3f(vn1));
+			verts_shape.push_back(ofVec3f(vn2));
+		}else{
+			verts_shape.push_back(ofVec3f(head[i]));
+		}
+	}
+
 }
 
 void KsmrTrail::setColor(ofFloatColor c){
@@ -59,39 +77,20 @@ void KsmrTrail::setWidth(float w){
 	width = w;
 }
 
-void KsmrTrail::draw(KsmrTrailType type, int resolution){
-
-	resolution = ofClamp(resolution, 1, numVerts-2);
+void KsmrTrail::draw(KsmrTrailType type){
 	ofSetColor(col);
-	
-	vector<ofVec3f> vs;
-	for (int i = 0;i < numVerts - 1;i+=resolution){
-		if (i < numVerts - 2){
-			ofVec3f v1 = (head[i]   - head[i+1]);
-			ofVec3f v2 = (head[i+1] - head[i+2]);
-			ofVec3f vn = v1.crossed(v2).normalized() * width * sin(i / float(numVerts-1.0f) * PI);
-
-			ofVec3f vn1 = head[i] + vn;
-			ofVec3f vn2 = head[i] - vn;
-
-			vs.push_back(ofVec3f(vn1));
-			vs.push_back(ofVec3f(vn2));
-		}else{
-			vs.push_back(ofVec3f(head[i]));
-		}
-	}
 
 	if (type == KSMR_TRAIL_NORMAL){
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
+		glVertexPointer(3, GL_FLOAT, 0, &verts_shape[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, verts_shape.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	if (type == KSMR_TRAIL_MESH){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &vs[0]);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, vs.size());
+		glVertexPointer(3, GL_FLOAT, 0, &verts_shape[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, verts_shape.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON);
 	}

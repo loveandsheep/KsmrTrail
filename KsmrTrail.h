@@ -23,7 +23,7 @@ class KsmrTrail{
 public:
 	void setup(ofVec3f pos, float wid = 13.0, int length = 20);
 	void update(ofVec3f target);
-	void draw(KsmrTrailType type = KSMR_TRAIL_NORMAL, int resolution = 1);
+	void draw(KsmrTrailType type = KSMR_TRAIL_NORMAL);
 
 	void setWidth(float w);
 	void setNumVerts(int num);
@@ -52,6 +52,7 @@ protected:
 	float tail_accVel;
 
 	ofFloatColor col;
+	vector<ofVec3f> verts_shape;
 };
 
 #endif /* defined(__KsmrTailTest__KsmrTrail__) */
