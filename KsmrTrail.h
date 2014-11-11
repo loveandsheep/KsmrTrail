@@ -16,27 +16,33 @@
 enum KsmrTrailType{
 	KSMR_TRAIL_NORMAL,
 	KSMR_TRAIL_LINE_THIN,
-	KSMR_TRAIL_MESH
+	KSMR_TRAIL_MESH,
+	KSMR_TRAIL_RIBBON
 };
 
 class KsmrTrail{
 public:
 	void setup(ofVec3f pos, float wid = 13.0, int length = 20);
 	void update(ofVec3f target);
-	void draw(KsmrTrailType type = KSMR_TRAIL_NORMAL);
+	void draw();
 
 	void setWidth(float w);
 	void setNumVerts(int num);
 	void setHeadAttenuation(float att);
 	void setColor(ofFloatColor c);
 
+	void setType(KsmrTrailType type);
 	void resetPosition(ofVec3f pos);
 
 	ofVec3f* getHeadsPos(){return &head[0];};
 	ofVec3f* getHeadsVec(){return &head_vec[0];};
 	ofVec3f* getHeadsAcc(){return &head_acc[0];};
 
+	bool dynamic_width;
+	float dynamic_width_k;
+	int resolution;
 protected:
+	KsmrTrailType currentType;
 	int numVerts;
 
 	ofVec3f head_acc[NUM_VERTS_MAX];
