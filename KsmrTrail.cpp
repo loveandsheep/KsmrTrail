@@ -24,6 +24,10 @@ void KsmrTrail::setup(ofVec3f pos, float wid, int length){
 	head_atten = 0.95;
 	numVerts = length;
 
+	currentType = KSMR_TRAIL_NORMAL;
+	dynamic_width = false;
+	dynamic_width_k = 200.0;
+	resolution = 1;
 }
 
 void KsmrTrail::update(ofVec3f target){
@@ -50,20 +54,57 @@ void KsmrTrail::update(ofVec3f target){
 	}
 
 	//シェイプ更新
-	verts_shape.clear();
-	for (int i = 0;i < numVerts - 1;i++){
-		if (i < numVerts - 2){
-			ofVec3f v1 = (head[i]   - head[i+1]);
-			ofVec3f v2 = (head[i+1] - head[i+2]);
-			ofVec3f vn = v1.crossed(v2).normalized() * width * sin(i / float(numVerts-1.0f) * PI);
 
-			ofVec3f vn1 = head[i] + vn;
-			ofVec3f vn2 = head[i] - vn;
+	if ((currentType == KSMR_TRAIL_NORMAL) ||
+		(currentType == KSMR_TRAIL_MESH)){
+		verts_shape.clear();
+		for (int i = 0;i < numVerts - 1;i+=resolution){
+			if (i < numVerts - 2){
+				ofVec3f v1 = (head[i]   - head[i+1]);
+				ofVec3f v2 = (head[i+1] - head[i+2]);
 
-			verts_shape.push_back(ofVec3f(vn1));
-			verts_shape.push_back(ofVec3f(vn2));
-		}else{
-			verts_shape.push_back(ofVec3f(head[i]));
+				if (dynamic_width){
+					width = v2.distance(v1)*dynamic_width_k;
+				}
+
+				ofVec3f vn = v1.crossed(v2).normalized() * width * sin(i / float(numVerts-1.0f) * PI);
+
+				ofVec3f vn1 = head[i] + vn;
+				ofVec3f vn2 = head[i] - vn;
+				verts_shape.push_back(ofVec3f(vn1));
+				verts_shape.push_back(ofVec3f(vn2));
+
+			}else{
+				verts_shape.push_back(ofVec3f(head[i]));
+			}
+		}
+	}
+
+	if (currentType == KSMR_TRAIL_RIBBON){
+		verts_shape.clear();
+		for (int i = 0;i < numVerts - 1;i+=resolution){
+			if (i < numVerts - 2){
+				ofVec3f v1 = (head[i]   - head[i+1]);
+				ofVec3f v2 = (head[i+1] - head[i+2]);
+
+				if (dynamic_width){
+					width = v2.distance(v1)*dynamic_width_k;
+				}
+
+				ofVec3f vn = v1.crossed(v2).normalized() * width;
+
+				vn.rotate(ofNoise(v1.x/3.0)*40.0,
+						  ofNoise(v1.y/3.0)*40.0,
+						  ofNoise(v1.z/3.0)*40.0);
+
+				ofVec3f vn1 = head[i] + vn;
+				ofVec3f vn2 = head[i] - vn;
+
+				verts_shape.push_back(ofVec3f(vn1));
+				verts_shape.push_back(ofVec3f(vn2));
+			}else{
+//				verts_shape.push_back(ofVec3f(head[i]));
+			}
 		}
 	}
 
@@ -77,24 +118,25 @@ void KsmrTrail::setWidth(float w){
 	width = w;
 }
 
-void KsmrTrail::draw(KsmrTrailType type){
+void KsmrTrail::draw(){
 	ofSetColor(col);
 
-	if (type == KSMR_TRAIL_NORMAL){
+	if ((currentType == KSMR_TRAIL_NORMAL) ||
+		(currentType == KSMR_TRAIL_RIBBON)){
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &verts_shape[0]);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, verts_shape.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
-	if (type == KSMR_TRAIL_MESH){
+	if (currentType == KSMR_TRAIL_MESH){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &verts_shape[0]);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, verts_shape.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POLYGON);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	if (type == KSMR_TRAIL_LINE_THIN){
+	if (currentType == KSMR_TRAIL_LINE_THIN){
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &head[0]);
 		glDrawArrays(GL_LINE_STRIP, 0, numVerts);
@@ -120,4 +162,8 @@ void KsmrTrail::setNumVerts(int num){
 
 void KsmrTrail::setHeadAttenuation(float att){
 	head_atten = att;
+}
+
+void KsmrTrail::setType(KsmrTrailType type){
+	currentType = type;
 }
