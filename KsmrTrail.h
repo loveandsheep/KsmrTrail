@@ -34,6 +34,8 @@ public:
 	void setType(KsmrTrailType type);
 	void resetPosition(ofVec3f pos);
 
+	ofFloatColor getColor(){return col;};
+
 	ofVec3f* getHeadsPos(){return &head[0];};
 	ofVec3f* getHeadsVec(){return &head_vec[0];};
 	ofVec3f* getHeadsAcc(){return &head_acc[0];};
